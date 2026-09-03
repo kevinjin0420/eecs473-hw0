@@ -1,0 +1,8 @@
+eecs473-hw0.pdf
+*.fdb_latexmk
+*.fls
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

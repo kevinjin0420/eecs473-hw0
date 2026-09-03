@@ -1,0 +1,183 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{graphicx}
+
+\title{EECS 473 --- HW \#0: Project Pre-Proposals}
+\author{Kevin Jin}
+\date{Sep 3, 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Proposal 1: Through-Wall Motion Radar}
+
+\subsection*{high-level description}
+
+a portable radar that shows you people moving on the other side of a wall. the
+finished device is a box you hold or set on a tripod: a patch antenna array on
+the front face, a screen on the back showing a top-down view, a battery, and a
+handle. point it at a wall and moving people behind that wall show up as blips
+that track as they walk around.
+
+commercial through-wall radars exist (the Range-R that US police use, the Xaver
+line) but they run six to fifty thousand dollars. the pitch is that a student
+team can build a functional one for a few hundred dollars in parts. the users
+who care are first responders doing search and rescue in a collapsed or smoke
+filled building, and tactical teams clearing a structure, both of whom want to
+know if a room is occupied before they walk into it. past that it is a strong
+demo of what RF sensing can actually do, which is why we think it draws a crowd
+at the expo.
+
+how it works: we build our own FMCW (frequency modulated continuous wave) radar
+front end operating somewhere in the 3 to 7 GHz range. the transmitter sends a
+chirp, the receiver mixes the return against the outgoing signal, and the beat
+frequency of that mix is proportional to target range. multiple receive
+antennas give us angle of arrival by comparing phase across the array. the walls
+and furniture are static, so we subtract a running background estimate (moving
+target indication) and what is left is the moving people. we render those as
+blips on the top-down display.
+
+we picked this band deliberately. 60 GHz mmWave radar modules are cheap and off
+the shelf but 60 GHz does not go through walls, the attenuation is enormous.
+lower frequencies penetrate drywall, plywood and brick with a manageable loss,
+and 3 to 7 GHz is the range where you still get enough bandwidth for useful
+range resolution. MIT's WiTrack demonstrated through-wall localization of a
+single moving person in roughly this band with about 1.8 GHz of bandwidth, so
+the physics is already proven. we are re-implementing a known result on a
+budget, not inventing a new one.
+
+\subsection*{implementation issues}
+
+\textit{rough plan for the design expo.} figuring there is about a ten day lag
+between ordering a PCB and getting it, and that RF boards usually take more than
+one respin, the schedule is roughly:
+
+\begin{enumerate}
+\item planning and part selection (weeks 1 to 3). pick the PLL/VCO, mixer, LNA,
+ADC and processor. simulate the antenna array. settle on chirp bandwidth and
+rate.
+\item breadboard the RF chain on eval modules (weeks 3 to 6). one transmit, one
+receive. get a clean range measurement in free space and stream raw IQ samples
+to a laptop.
+\item PCB design and first order (weeks 5 to 8). RF front end plus processor
+plus power on a controlled-impedance board, with footprints for the full
+receive array. order by roughly 10/26.
+\item DSP pipeline on the laptop (weeks 6 to 10). FMCW range processing, moving
+target indication, angle of arrival, top-down visualization. validate it
+through a real interior wall.
+\item board bring-up and integration (weeks 10 to 12). move the DSP onto the
+processor (or stream to a companion module), integrate the screen and
+enclosure, second board respin if needed.
+\item final testing, calibration, poster, expo (weeks 12 to 14). characterize
+range and accuracy, add stretch goals if time allows.
+\end{enumerate}
+
+\textit{rough budget.} across a team of five the ceiling is \$1250.
+
+\begin{itemize}
+\item RF parts (PLL/VCO, mixers, LNAs, ADC): \textasciitilde\$150
+\item PCB manufacture, controlled impedance and likely a Rogers laminate for the
+RF section, two or three respins: \textasciitilde\$350
+\item antennas, connectors, semi-rigid cable: \textasciitilde\$100
+\item processor / FPGA dev board and screen: \textasciitilde\$100
+\item enclosure, battery, misc: \textasciitilde\$100
+\end{itemize}
+
+that is around \$800, comfortably under budget. the RF-grade PCB is the cost
+driver and the item most likely to blow up, since every respin is another board
+order and another ten day wait.
+
+\textit{other implementation issues.} RF is unforgiving and the antenna plus
+front end is the long pole of the whole project, we are budgeting for at least
+two board spins because of it. we need bench access to a VNA and a spectrum
+analyzer for bring-up, which the department lab has. on the regulatory side, we
+stay inside the FCC Part 15 UWB emission mask: transmit power stays very low, no
+license required. building a high power radar in a licensed band is not on the
+table. there are no moving parts and no mechanical hazards. the energy budget is
+fine, the transmit power is tiny and the display and processor are the real
+draw.
+
+\textit{why we think it is doable.} FMCW radar in this frequency range is a well
+documented space. MIT's 6.S062 "coffee can radar" and Henrik Forsten's open 6
+GHz FMCW radar project are both public end-to-end designs, and integrated
+PLL/VCO parts like the ADF4159 paired with the HMC series exist at reasonable
+cost. the hard, novel work for us is the antenna array, the moving target
+indication through a real wall, and getting the pipeline to run in real time.
+none of those is an open research question, they are just work, and this team
+can do a lot of work.
+
+\subsection*{evaluation and testing}
+
+the MVP measure of success: detect and range a single person walking behind one
+interior drywall wall, with range error under about 50 cm. the v1 target: add
+angle of arrival, so the device tracks that person's 2D position and the blip
+moves on the screen in real time as they walk.
+
+test method: a person walks a marked path in the far room while a camera in that
+room, timestamp-synced to the radar, records ground truth. we compare the
+estimated track against the actual track and pull out detection range, range
+accuracy, angular accuracy, update rate, and how many people we can separate at
+once.
+
+real-world caveats we will be honest about in the report. the device only sees
+moving people, because the static subtraction erases anyone holding perfectly
+still (a breathing-detection mode is a stretch goal that gets some of them
+back). wall material changes the propagation speed, so range needs a per-wall
+calibration knob, we are not going to pretend it is plug and play. multiple
+walls and exterior brick are out of scope. and full imaging, an actual
+silhouette or skeleton, is explicitly not what this is, that is years of work
+and a trained neural net, we track blips.
+
+\newpage
+
+\section*{Proposal 2 (wacky): Head-Mounted Aurora Amplifier}
+
+\subsection*{high-level description}
+
+a visor that lets you see auroae the naked eye can't. the human eye integrates
+light over roughly a tenth of a second, so a faint aurora reads as a dim grey
+smudge with no color. a camera can integrate for five seconds and pull out
+bright structured green and purple curtains. this device does that integration
+live and puts the result on a display in front of your eyes.
+
+the finished thing is a visor: a low-light camera up top, two micro-OLED
+displays, an IMU on the frame, and a compute pack on the headband or belt. it
+grabs frames continuously, uses the IMU plus optical flow to register each new
+frame against the running stack so your head motion cancels out, and integrates
+about five seconds of exposure. the stacked, denoised, color-boosted image goes
+to the displays at a few frames per second. users are aurora chasers and
+astro-tourists who drove somewhere cold and want to actually see the show, plus
+photographers who want a live preview instead of chimping the back of a DSLR.
+
+\subsection*{why this one is unrealistic for us}
+
+the hard part is real-time multi-frame registration and stacking on a wearable
+power budget, and that is a computer vision and ML problem, not an embedded
+systems one. doing it well needs a Jetson-class module, careful low-light
+denoising, and solid motion estimation, and if we lean on a COTS compute module
+for all of that then our PCB is basically a carrier board with an IMU and a
+display driver, which undersells the "design a PCB around a processor" goal of
+the course. the low-light camera and optics selection is also finicky, and
+aurora only happens on cold clear nights with low light pollution and decent
+geomagnetic activity, so the test loop is brutal, we would be driving north of
+the city at 1am hoping for a KP 4.
+
+\subsection*{if we were forced to scope it}
+
+COTS low-light camera, Jetson Orin Nano, IMU. prototype the whole stacking
+pipeline on a laptop against recorded night-sky and aurora footage first, then
+port it to the Jetson. the PCB is a carrier: power regulation, IMU, display
+drivers, camera interface.
+
+rough budget: Jetson \textasciitilde\$250, low-light camera
+\textasciitilde\$100, micro-OLED displays \textasciitilde\$150, IMU and passives
+\textasciitilde\$50, optics and enclosure \textasciitilde\$100. around \$650,
+dominated by the compute module.
+
+evaluation: compare the stacked output's signal-to-noise against a single frame,
+and against a tripod-mounted long-exposure DSLR shooting the same patch of sky.
+success is pulling a KP 3 aurora into clear colored visibility when the naked
+eye sees a faint grey smudge.
+
+\end{document}
