@@ -2,6 +2,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{parskip}
 \usepackage{graphicx}
+\usepackage{url}
 
 \title{EECS 473 Homework 0}
 \author{Kevin Jin}
@@ -25,7 +26,9 @@ The device works as an FMCW (frequency-modulated continuous-wave) radar that the
 
 \subsection*{Implementation Issues}
 
-\textbf{Rough plan for the Design Expo.} Allowing for the roughly ten-day lag between ordering a PCB and receiving it, and for the fact that RF boards usually require more than one revision, the schedule is approximately:
+\subsubsection*{Rough Timeline}
+
+Allowing for the roughly ten-day lag between ordering a PCB and receiving it, and for the fact that RF boards usually require more than one revision, the schedule is approximately:
 
 \begin{enumerate}
 \item Planning and part selection (weeks 1 to 3). Choose the PLL/VCO, mixer, LNA, ADC, and processor. Simulate the antenna array. Settle on chirp bandwidth and chirp rate.
@@ -36,7 +39,9 @@ The device works as an FMCW (frequency-modulated continuous-wave) radar that the
 \item Final testing, calibration, poster, and Expo (weeks 12 to 14). Characterize range and accuracy, and add stretch goals if time allows.
 \end{enumerate}
 
-\textbf{Rough budget.} Across a team of five the ceiling is \$1250. The estimate below uses single-unit Digi-Key pricing for the RF semiconductors and current prototype-quantity PCB pricing. For calibration, a hobbyist chip-level FMCW RF board (VCO, LNA, mixer, three gain blocks) has been built for about \$60, and the classic MIT ``coffee-can'' radar runs a few hundred dollars in parts; our cost is higher mainly because we run multiple receive channels and fabricate a final board on Rogers laminate.
+\subsubsection*{Rough Budget}
+
+Across a team of five the ceiling is \$1250. The estimate below uses single-unit Digi-Key pricing for the RF semiconductors and current prototype-quantity PCB pricing. For calibration, a hobbyist chip-level FMCW RF board (VCO, LNA, mixer, three gain blocks) has been built for about \$60, and the classic MIT ``coffee-can'' radar runs a few hundred dollars in parts; our cost is higher mainly because we run multiple receive channels and fabricate a final board on Rogers laminate.
 
 \begin{center}
 \small
@@ -59,9 +64,11 @@ Shipping & several part and board orders & 75 \\
 
 That leaves roughly \$135 of headroom under the \$1250 ceiling. Substituting a department-owned FPGA board for the Zynq purchase drops the total to about \$965. The Rogers PCB is the cost driver and the item most likely to cause schedule problems, since every revision is another board order and another ten-day wait, so we keep early iteration on cheap FR-4 and commit to the Rogers laminate only once the layout is stable.
 
-\textbf{Other implementation issues.} RF design is unforgiving, and the antenna and front end together are the critical path for the whole project, so we are budgeting for at least two board revisions on their account. We need bench access to a vector network analyzer and a spectrum analyzer for bring-up, which the department lab provides. On the regulatory side, we stay within the FCC Part 15 UWB emission mask: transmit power stays very low, and no license is required. Building a high-power radar in a licensed band is not an option we are considering. There are no moving parts and no mechanical hazards. The energy budget is not a concern, because the transmit power is small and the display and processor are the dominant loads.
+\subsubsection*{Implementation Issues}
 
-\textbf{Why we think it is doable.} FMCW radar in this frequency range is well-documented territory. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and integrated PLL/VCO parts such as the ADF4159, paired with the HMC series, are available at reasonable cost. The hard and novel work for us is the antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time. None of those is an open research question. They are all work, and this team can do a large amount of work.
+RF design is unforgiving, and the antenna and front end together are the critical path for the whole project, so we are budgeting for at least two board revisions on their account. We need bench access to a vector network analyzer and a spectrum analyzer for bring-up, which the department lab provides. On the regulatory side, we stay within the FCC Part 15 UWB emission mask: transmit power stays very low, and no license is required. Building a high-power radar in a licensed band is not an option we are considering. There are no moving parts and no mechanical hazards. The energy budget is not a concern, because the transmit power is small and the display and processor are the dominant loads.
+
+FMCW radar in this frequency range is otherwise well-documented territory. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and integrated PLL/VCO parts such as the ADF4159, paired with the HMC series, are available at reasonable cost. MIT's WiTrack project already demonstrated through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we are re-implementing a known result on a budget, not inventing a new one. The hard and novel work for us is the antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time; none of those is an open research question, they are all work, and this team can do a large amount of work.
 
 \subsection*{Evaluation and Testing}
 
@@ -79,15 +86,17 @@ We will be honest in the report about the real-world caveats. The device only de
 
 A visor that lets you see auroae the naked eye cannot. The human eye integrates light over roughly a tenth of a second, so a faint aurora appears as a dim grey smudge with no color. A camera can integrate for five seconds and pull out bright, structured green and purple curtains. This device performs that integration live and puts the result on a display in front of your eyes.
 
-The finished device is a visor: a low-light camera at the top, two micro-OLED displays, an IMU on the frame, and a compute pack on the headband or belt. It captures frames continuously, uses the IMU together with optical flow to register each new frame against the running stack so that head motion cancels out, and integrates about five seconds of exposure. The stacked, denoised, color-boosted image is sent to the displays at a few frames per second. The users are aurora chasers and astro-tourists who have driven somewhere cold and want to actually see the display, along with photographers who want a live preview instead of checking the back of a DSLR.
+This idea originated when I first went aurora viewing here in Michigan, and was confused when everyone else began pulling out thier phones and cameras to take pictures while I could not see anything in the sky. I was able to capture the faint aurora with a long exposure shot on my phone, but I thought being able to view the faint and otherwise invisible aurora in real time would be very cool. 
+
+The finished device is a visor or a pair of glasses. A low-light camera like the type used in dash cams (some fancy Sony sensor that works well with motion and low light) at the top, two micro-OLED displays, an IMU on the frame, and a compute pack on the headband or belt worn around the waist. It captures frames continuously, uses the IMU together with the camera stream to register each new frame against the running stack so that head motion cancels out, and integrates about five seconds of exposure. The stacked, denoised, color-boosted image is sent to the displays at a the highest framerate we can get, which will probably be in the 1 to low 2 digits. The compute pack (probably something along the lines of a Jetson Orin) may be quite heavy, hence why we suggest it could be waist mounted. 
 
 \subsection*{Implementation Issues}
 
-\textbf{Why this one is risky.} The hard part is real-time multi-frame registration and stacking within a wearable power budget, and that is a computer-vision and machine-learning problem rather than an embedded-systems one. It needs a Jetson-class module, careful low-light denoising, and solid motion estimation. If we lean on a commercial compute module for all of that, our PCB becomes a carrier board with an IMU and a display driver, which undersells the goal of designing a PCB around a processor. Aurora also only occurs on cold, clear nights with low light pollution and sufficient geomagnetic activity, so field testing means driving north of the city at 1 a.m. hoping for a Kp index of 4.
+\subsubsection*{Rough Timeline}
 
-\textbf{Rough plan for the Design Expo.} Weeks 1 to 3: select the camera, compute module, IMU, and displays; build a laptop prototype of the stacking pipeline against recorded night-sky footage. Weeks 4 to 7: design the carrier PCB (power, IMU, camera interface, display drivers) and order it. Weeks 6 to 10: port the pipeline to the compute module and get it running at a few frames per second. Weeks 10 to 13: integrate the visor, run field tests on clear nights, tune denoising and exposure. Weeks 13 to 14: poster and Expo, with an indoor simulated-sky demo as a fallback since aurora cannot be scheduled.
+Weeks 1 to 3: select the camera, compute module, IMU, and displays; build a laptop prototype of the stacking pipeline against recorded night-sky footage. Weeks 4 to 7: design the carrier PCB (power, IMU, camera interface, display drivers) and order it. Weeks 6 to 10: port the pipeline to the compute module and get it running at a few frames per second. Weeks 10 to 13: integrate the visor, run field tests on clear nights, tune denoising and exposure. Weeks 13 to 14: poster and Expo, with an indoor simulated-sky demo as a fallback since aurora cannot be scheduled.
 
-\textbf{Rough budget.} Dominated by the compute module, and well under the \$1250 ceiling.
+\subsubsection*{Rough Budget}
 
 \begin{center}
 \small
@@ -95,22 +104,33 @@ The finished device is a visor: a low-light camera at the top, two micro-OLED di
 \hline
 Category & Examples & Est. \$ \\
 \hline
-Compute module & Jetson Orin Nano class & 250 \\
-Low-light camera and lens & back-illuminated sensor, fast lens & 120 \\
-Displays & two micro-OLED panels & 150 \\
-IMU, power, passives & IMU, regulators, connectors & 60 \\
-Carrier PCB & two revisions & 60 \\
-Optics, visor frame, battery, enclosure & headband pack and housing & 110 \\
+Compute module & Jetson Orin Nano & 250 \\
+Low-light camera & Sony IMX908 & 250 \\
+Displays & ECX334C Clone & 100\footnotemark \\
+IMU, power, etc. & & 50 \\
+Carrier PCB & & 100 \\
+Optics, visor frame, battery, enclosure & & 200 \\
 \hline
-\textbf{Total} & & \textbf{750} \\
+\textbf{Total} & & \textbf{950} \\
 \hline
 \end{tabular}
 \end{center}
+\footnotetext{Sony ECX334C MicroOLED display clones could be had for \$50 in China. Used in my 373 project.}
 
-\textbf{Other implementation issues.} The compute module runs hot and draws several watts, so the headband pack needs a real battery and some airflow. Optics and camera selection is finicky and iterative. There are no RF or mechanical hazards, and the only safety note is not walking into things while wearing a display.
+\subsubsection*{Implementation Issues}
+
+The compute module runs hot and draws 2 digit wattage constantly, so we will need a big battery and some active cooling. 
+
+Optics and camera selection is very finicky and iterative. There will be an extreme amount of sensor tuning and experimentation with filters to get an actually usable output. There's also the question of using the camera stream to do stabilization, which means some sort of sensor fusion algorithm, which is difficult and finicky to implement too. 
+
+CV will be a very significant part of this project, so much so that you could argue that it becomes a ML project, not an embedded project.
 
 \subsection*{Evaluation and Testing}
 
-We would compare the stacked output's signal-to-noise ratio against a single frame, and against a tripod-mounted long-exposure DSLR shooting the same patch of sky. Success is pulling a Kp 3 aurora into clear, colored visibility when the naked eye sees only a faint grey smudge. As an interim indoor test, we project a dim, slowly varying synthetic aurora onto a screen at known low light levels and confirm the device recovers it while a bare camera frame does not.
+We would compare the stacked output's signal-to-noise ratio against a single frame, and against a tripod-mounted long-exposure camera shooting the same patch of sky. 
+
+Success is pulling a Kp 3 aurora into clear, colored visibility when the naked eye can barely see anything. As a convenient indoor test, we can project a dim, slowly varying synthetic aurora onto a screen in a dark room and confirm the device recovers it while a bare camera frame does not. 
+
+Eventually, real world testing should ideally be done. I captured my aurora at Pinckney Recreation Area about 30 minutes North by car of Ann Arbor. Go when there are clear skies and a high enough Kp value reported by NOAA. 
 
 \end{document}
