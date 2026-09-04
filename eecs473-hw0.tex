@@ -6,7 +6,7 @@
 
 \title{EECS 473 Homework 0}
 \author{Kevin Jin}
-\date{Sep 4, 2026}
+\date{\today}
 
 \begin{document}
 \maketitle
@@ -21,28 +21,25 @@ Commercial through-wall radars exist. The Range-R unit used by US police and the
 
 The device works as an FMCW (frequency-modulated continuous-wave) radar that the team build themselves, operating somewhere in the 3 to 7 GHz range. The transmitter sends a chirp, the receiver mixes the return against the outgoing signal, and the beat frequency of that mix is proportional to target range. Multiple receive antennas give us angle of arrival by comparing phase across the array. Walls and furniture are static, so we subtract a running background estimate, a technique called moving-target indication, and what remains is the moving people. We render those returns as blips on the display.
 
-% if using, put in another section
-% We chose this frequency band deliberately. The 60 GHz mmWave radar modules that are cheap and available off the shelf do not penetrate walls, because attenuation at that frequency is severe. Lower frequencies pass through drywall, plywood, and brick with a manageable loss, and 3 to 7 GHz is the range where enough bandwidth is still available for useful range resolution. MIT's WiTrack project demonstrated through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth, so the underlying physics is already proven. We are re-implementing a known result on a budget, not inventing a new one.
-
 \subsection*{Implementation}
 
 \subsubsection*{Rough Timeline}
 
 \begin{center}
 \small
-\begin{tabular}{p{2.3cm} p{12.5cm}}
+\begin{tabular}{|c|p{13.5cm}|}
 \hline
-9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and processor. Simulate the antenna array. Settle on chirp bandwidth and chirp rate, and finalize this proposal. \\
+9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and processor. Simulate the antenna array, settle on chirp bandwidth and chirp rate, and finalize this proposal. \\
 \hline
-10/1--10/22 & Breadboard the RF chain on evaluation modules. One transmit channel, one receive channel. Obtain a clean range measurement in free space and stream raw IQ samples to a laptop. \\
+10/1--10/22 & Breadboard the RF chain on evaluation modules. One transmit channel, one receive channel. Get a clean range measurement in free space and stream raw IQ samples to a laptop. \\
 \hline
 10/15--11/5 & PCB design and first order. RF front end, processor, and power on a controlled-impedance board, with footprints for the full receive array. Order by roughly 10/26. \\
 \hline
 10/22--11/19 & DSP pipeline on the laptop. FMCW range processing, moving-target indication, angle of arrival, and the forward-sector visualization. Validate it through a real interior wall. \\
 \hline
-11/12--12/3 & Board bring-up and integration. Move the DSP onto the processor, or stream to a companion module if necessary. Integrate the screen and enclosure. Order a second board revision if needed. \\
+11/12--12/3 & Board bring-up and integration. Move the DSP onto the processor, or stream to a companion module if necessary. Integrate the screen and enclosure, order a second board revision if needed. \\
 \hline
-12/3--12/10 & Final testing, calibration, poster, and Expo. Characterize range and accuracy, and add stretch goals if time allows. \\
+12/3--12/10 & Final testing, calibration, poster, and Expo. Characterize range and accuracy, add stretch goals if time allows. \\
 \hline
 \end{tabular}
 \end{center}
@@ -57,7 +54,7 @@ Category & Examples & Est. \$ \\
 \hline
 RF semiconductors & VCO, PLL, LNAs, mixers, gain blocks & 250 \\
 ADC and digital capture & dual 12-bit 40--65 MSPS parts & 100 \\
-Processor / FPGA board & Zynq-7020 class & 150 \\
+Processor / FPGA board & Zynq-7020 class\footnotemark & 150 \\
 RF connectors, cable, passives & SMA launches, RG405, filters, baluns & 150 \\
 PCB fabrication & FR-4 iteration plus final Rogers hybrid & 300 \\
 Display, battery, enclosure & 5 in LCD, LiPo, 3D-printed housing & 90 \\
@@ -67,22 +64,21 @@ Shipping & several part and board orders & 75 \\
 \hline
 \end{tabular}
 \end{center}
-
-That leaves roughly \$135 of headroom under the \$1250 ceiling. Substituting a department-owned FPGA board for the Zynq purchase drops the total to about \$965. The Rogers PCB is the cost driver and the item most likely to cause schedule problems, since every revision is another board order and another ten-day wait, so we keep early iteration on cheap FR-4 and commit to the Rogers laminate only once the layout is stable.
+\footnotetext{A department-owned FPGA board could substitute for this line, dropping the total to about \$965 and leaving more headroom under the \$1250 ceiling.}
 
 \subsubsection*{Implementation Issues}
 
-RF design is unforgiving, and the antenna and front end together are the critical path for the whole project, so we are budgeting for at least two board revisions on their account. We need bench access to a vector network analyzer and a spectrum analyzer for bring-up, which the department lab provides. On the regulatory side, we stay within the FCC Part 15 UWB emission mask: transmit power stays very low, and no license is required. Building a high-power radar in a licensed band is not an option we are considering. There are no moving parts and no mechanical hazards. The energy budget is not a concern, because the transmit power is small and the display and processor are the dominant loads.
+RF is unforgiving. The antenna and front end are the critical path for the whole project, so we're budgeting for at least two board revisions on their account, and we need bench access to a vector network analyzer and a spectrum analyzer for bring-up (the department lab has both). Transmit power stays inside the FCC Part 15 UWB emission mask, so no license is required, and building a high-power radar in a licensed band is not on the table. No moving parts, no mechanical hazards, and the RF power draw is tiny compared to what the display and processor pull.
 
-FMCW radar in this frequency range is otherwise well-documented territory. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and integrated PLL/VCO parts such as the ADF4159, paired with the HMC series, are available at reasonable cost. MIT's WiTrack project already demonstrated through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we are re-implementing a known result on a budget, not inventing a new one. The hard and novel work for us is the antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time; none of those is an open research question, they are all work, and this team can do a large amount of work.
+FMCW radar in this band is otherwise well-trodden ground. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and parts like the ADF4159 PLL paired with the HMC series are available at reasonable cost. MIT's WiTrack project already pulled off through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we're re-implementing a known result on a budget, not inventing a new one. The antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time are the hard parts for us, but none of them is an open research question.
 
 \subsection*{Evaluation and Testing}
 
-The minimum measure of success is to detect and range a single person walking behind one interior drywall wall, with range error under about 50 cm. The next target is to add angle of arrival, so that the device tracks that person's position within the forward sector and the blip moves on the screen in real time as they walk.
+Minimum bar for success: detect and range a single person walking behind one interior drywall wall, range error under about 50 cm. Next target: add angle of arrival, so the device tracks that person's position within the forward sector and the blip moves on screen in real time as they walk.
 
-The test method is as follows. A person walks a marked path in the far room while a camera in that room, timestamp-synchronized to the radar, records ground truth. We compare the estimated track against the actual track and extract detection range, range accuracy, angular accuracy, update rate, and the number of people we can resolve at once.
+A person walks a marked path in the far room while a camera in that room, timestamp-synced to the radar, records ground truth. We compare the estimated track against the actual one and pull out detection range, range accuracy, angular accuracy, update rate, and how many people we can resolve at once.
 
-We will be honest in the report about the real-world caveats. The device only detects moving people, because the static subtraction erases anyone holding perfectly still; a breathing-detection mode is a stretch goal that would recover some of them. Wall material changes the propagation speed, so range requires a per-wall calibration adjustment, and we will not pretend the device works without one. Multiple walls and exterior brick are out of scope. Full imaging, meaning an actual silhouette or skeleton, is explicitly not what this project is; that would take years of work and a trained neural network. We track blips.
+Some caveats we won't hide from the report. The device only sees moving people, since the static subtraction erases anyone holding perfectly still (a breathing-detection mode is a stretch goal that would recover some of them). Wall material changes the propagation speed, so range needs a per-wall calibration adjustment. Multiple walls and exterior brick are out of scope. Full imaging, an actual silhouette or skeleton, is explicitly not what this is, that's years of work and a trained neural network. We track blips.
 
 \newpage
 
@@ -136,7 +132,7 @@ Optics, visor frame, battery, enclosure & & 200 \\
 \hline
 \end{tabular}
 \end{center}
-\footnotetext{Sony ECX334C MicroOLED display clones could be had for \$50 in China. Used in my 373 project.}
+\footnotetext{Sony ECX334C MicroOLED display clones could be had for \$50 in China. Used in my 373 project. May not be feasible for your team if you decided to adopt. Costs \$200 in the US. }
 
 \subsubsection*{Implementation Issues}
 
