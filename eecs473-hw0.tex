@@ -24,24 +24,30 @@ The device works as an FMCW (frequency-modulated continuous-wave) radar that the
 % if using, put in another section
 % We chose this frequency band deliberately. The 60 GHz mmWave radar modules that are cheap and available off the shelf do not penetrate walls, because attenuation at that frequency is severe. Lower frequencies pass through drywall, plywood, and brick with a manageable loss, and 3 to 7 GHz is the range where enough bandwidth is still available for useful range resolution. MIT's WiTrack project demonstrated through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth, so the underlying physics is already proven. We are re-implementing a known result on a budget, not inventing a new one.
 
-\subsection*{Implementation Issues}
+\subsection*{Implementation}
 
 \subsubsection*{Rough Timeline}
 
-Allowing for the roughly ten-day lag between ordering a PCB and receiving it, and for the fact that RF boards usually require more than one revision, the schedule is approximately:
-
-\begin{enumerate}
-\item Planning and part selection (weeks 1 to 3). Choose the PLL/VCO, mixer, LNA, ADC, and processor. Simulate the antenna array. Settle on chirp bandwidth and chirp rate.
-\item Breadboard the RF chain on evaluation modules (weeks 3 to 6). One transmit channel, one receive channel. Obtain a clean range measurement in free space and stream raw IQ samples to a laptop.
-\item PCB design and first order (weeks 5 to 8). RF front end, processor, and power on a controlled-impedance board, with footprints for the full receive array. Order by roughly October 26.
-\item DSP pipeline on the laptop (weeks 6 to 10). FMCW range processing, moving-target indication, angle of arrival, and the forward-sector visualization. Validate it through a real interior wall.
-\item Board bring-up and integration (weeks 10 to 12). Move the DSP onto the processor, or stream to a companion module if necessary. Integrate the screen and enclosure. Order a second board revision if needed.
-\item Final testing, calibration, poster, and Expo (weeks 12 to 14). Characterize range and accuracy, and add stretch goals if time allows.
-\end{enumerate}
+\begin{center}
+\small
+\begin{tabular}{p{2.3cm} p{12.5cm}}
+\hline
+9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and processor. Simulate the antenna array. Settle on chirp bandwidth and chirp rate, and finalize this proposal. \\
+\hline
+10/1--10/22 & Breadboard the RF chain on evaluation modules. One transmit channel, one receive channel. Obtain a clean range measurement in free space and stream raw IQ samples to a laptop. \\
+\hline
+10/15--11/5 & PCB design and first order. RF front end, processor, and power on a controlled-impedance board, with footprints for the full receive array. Order by roughly 10/26. \\
+\hline
+10/22--11/19 & DSP pipeline on the laptop. FMCW range processing, moving-target indication, angle of arrival, and the forward-sector visualization. Validate it through a real interior wall. \\
+\hline
+11/12--12/3 & Board bring-up and integration. Move the DSP onto the processor, or stream to a companion module if necessary. Integrate the screen and enclosure. Order a second board revision if needed. \\
+\hline
+12/3--12/10 & Final testing, calibration, poster, and Expo. Characterize range and accuracy, and add stretch goals if time allows. \\
+\hline
+\end{tabular}
+\end{center}
 
 \subsubsection*{Rough Budget}
-
-Across a team of five the ceiling is \$1250. The estimate below uses single-unit Digi-Key pricing for the RF semiconductors and current prototype-quantity PCB pricing. For calibration, a hobbyist chip-level FMCW RF board (VCO, LNA, mixer, three gain blocks) has been built for about \$60, and the classic MIT ``coffee-can'' radar runs a few hundred dollars in parts; our cost is higher mainly because we run multiple receive channels and fabricate a final board on Rogers laminate.
 
 \begin{center}
 \small
@@ -90,11 +96,26 @@ This idea originated when I first went aurora viewing here in Michigan, and was 
 
 The finished device is a visor or a pair of glasses. A low-light camera like the type used in dash cams (some fancy Sony sensor that works well with motion and low light) at the top, two micro-OLED displays, an IMU on the frame, and a compute pack on the headband or belt worn around the waist. It captures frames continuously, uses the IMU together with the camera stream to register each new frame against the running stack so that head motion cancels out, and integrates about five seconds of exposure. The stacked, denoised, color-boosted image is sent to the displays at a the highest framerate we can get, which will probably be in the 1 to low 2 digits. The compute pack (probably something along the lines of a Jetson Orin) may be quite heavy, hence why we suggest it could be waist mounted. 
 
-\subsection*{Implementation Issues}
+\subsection*{Implementation}
 
 \subsubsection*{Rough Timeline}
 
-Weeks 1 to 3: select the camera, compute module, IMU, and displays; build a laptop prototype of the stacking pipeline against recorded night-sky footage. Weeks 4 to 7: design the carrier PCB (power, IMU, camera interface, display drivers) and order it. Weeks 6 to 10: port the pipeline to the compute module and get it running at a few frames per second. Weeks 10 to 13: integrate the visor, run field tests on clear nights, tune denoising and exposure. Weeks 13 to 14: poster and Expo, with an indoor simulated-sky demo as a fallback since aurora cannot be scheduled.
+\begin{center}
+\small
+\begin{tabular}{|c|p{13.5cm}|}
+\hline
+9/10--10/1 & Part selection and laptop prototype. Select and purchase the camera, compute module, IMU, and displays. Build a prototype of the software stack running on a laptop and simulate it against night sky footage, and finalize this proposal. \\
+\hline
+10/1--10/22 & Carrier PCB. Design the board, covering power, IMU, camera interface, and display drivers, and order it. \\
+\hline
+10/22--11/19 & Port to the compute module. Get the pipeline running on the jetson at a few frames per second and optimize as needed. \\
+\hline
+11/12--12/3 & Visor integration and field testing. Integrate the visor, run field tests on clear nights, and tune denoising and exposure. \\
+\hline
+12/3--12/10 & Design the poster and prepare for the expo. Use an indoor simulated-sky demo as a fallback since aurora cannot be scheduled. Optionally take the teaching team out for demo if timing is convenient. \\
+\hline
+\end{tabular}
+\end{center}
 
 \subsubsection*{Rough Budget}
 
