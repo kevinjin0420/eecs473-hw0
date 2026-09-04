@@ -17,11 +17,21 @@
 
 A portable radar that shows you people moving on the other side of a wall. The finished device is a box you hold in one hand (may be unrealistic, backup is two hands). Ideally we'd get the box to be around the size of a thick phone, but that may be unrealistic based on the antenna arrangement we will need to adopt. A patch antenna array points to the "top" of the box, a screen on the front showing a forward sector view. You point it at a wall, press a button, and moving people behind that wall appear as blips that track as they walk around. 
 
-Commercial through-wall radars exist. The Range-R unit used by US police and the Xaver line are two examples, but they cost between six and fifty thousand dollars. The pitch is that a student team can build a functional one for a few hundred dollars in parts (that's with our designs and RnD cost excluded). The users who care are first responders searching the ruins of a collapsed building or tactical teams clearing a structure, both teams would want to know whether a room is occupied before they walk into it. 
+Commercial through-wall radars exist. The Range-R unit used by US police and the Xaver line are two examples, but they cost between six and fifty thousand dollars (The Range-R website asks for a quote, that's how you know its expensive). The pitch is that a student team can build a functional one for a few hundred dollars in parts, that's excluding our designs and RnD cost. The users who care are first responders searching the ruins of a collapsed building or tactical teams clearing a structure, both teams would want to know whether a room is occupied before they walk into it. 
 
-The device works as an FMCW (frequency-modulated continuous-wave) radar that the team build themselves, operating somewhere in the 3 to 7 GHz range. The transmitter sends a chirp, the receiver mixes the return against the outgoing signal, and the beat frequency of that mix is proportional to target range. Multiple receive antennas give us angle of arrival by comparing phase across the array. Walls and furniture are static, so we subtract a running background estimate, a technique called moving-target indication, and what remains is the moving people. We render those returns as blips on the display.
+The device works by sending out a radio signal and listening for the echo, the same idea as a bat using echolocation. The delay before the echo comes back tells us how far away something is, and comparing the echo across a few antennas in some arrangement tells us roughly which direction it came from. The wall, the floor, and the furniture all bounce back the same echo every time, so we tune the device to ignore anything that isn't changing and only highlight signals that shift from one moment to the next, which is what a walking person looks like. Those changing echoes become the blips on the screen.
 
 \subsection*{Implementation}
+
+Some definitions for you the reader and also as notes for myself as I research:
+
+\textbf{PLL}: phase-locked loop, the controller chip that commands and stabilizes the signal sweep.
+
+\textbf{VCO}: voltage-controlled oscillator, the part that generates the RF signal, controlled by the PLL.
+
+\textbf{Mixer}: combines the received echo with the outgoing chirp to produce a much lower frequency that encodes range.
+
+\textbf{LNA}: low-noise amplifier, boosts the faint echo signal
 
 \subsubsection*{Rough Timeline}
 
@@ -29,17 +39,17 @@ The device works as an FMCW (frequency-modulated continuous-wave) radar that the
 \small
 \begin{tabular}{|c|p{13.5cm}|}
 \hline
-9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and processor. Simulate the antenna array, settle on chirp bandwidth and chirp rate, and finalize this proposal. \\
+9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and processor. Decide on whether an FPGA is necessary, and if so, design around that instead. Finalize proposal. \\
 \hline
-10/1--10/22 & Breadboard the RF chain on evaluation modules. One transmit channel, one receive channel. Get a clean range measurement in free space and stream raw IQ samples to a laptop. \\
+10/1--10/22 & Basic prototyping, have an RF emitter and antenna. Increase the number of antennae and try to get a proof of concept working.  \\
 \hline
-10/15--11/5 & PCB design and first order. RF front end, processor, and power on a controlled-impedance board, with footprints for the full receive array. Order by roughly 10/26. \\
+10/15--11/5 & PCB design and first order. This obviously requires knowing the antenna layout, what needs to go where physically, the number of ports we need, etc. Ideally order by 10/26. \\
 \hline
-10/22--11/19 & DSP pipeline on the laptop. FMCW range processing, moving-target indication, angle of arrival, and the forward-sector visualization. Validate it through a real interior wall. \\
+10/22--11/19 & Full DSP pipeline on the laptop. FMCW range processing, moving-target recognition and indication. Validate it through a real wall. \\
 \hline
-11/12--12/3 & Board bring-up and integration. Move the DSP onto the processor, or stream to a companion module if necessary. Integrate the screen and enclosure, order a second board revision if needed. \\
+11/12--12/3 & Integration everything and rigirous refining and testing. \\
 \hline
-12/3--12/10 & Final testing, calibration, poster, and Expo. Characterize range and accuracy, add stretch goals if time allows. \\
+12/3--12/10 & Final testing, calibration, poster and expo prep. Have numbers for what we can advertise for the device. \\
 \hline
 \end{tabular}
 \end{center}
@@ -72,13 +82,19 @@ RF is unforgiving. The antenna and front end are the critical path for the whole
 
 FMCW radar in this band is otherwise well-trodden ground. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and parts like the ADF4159 PLL paired with the HMC series are available at reasonable cost. MIT's WiTrack project already pulled off through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we're re-implementing a known result on a budget, not inventing a new one. The antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time are the hard parts for us, but none of them is an open research question.
 
+The device only sees moving people, since the static subtraction erases anyone holding perfectly still. A breathing-detection mode is a stretch goal that would recover some of them
+
+MIT's Vital-Radio project has shown breathing and heart rate can be picked out through a wall from radio reflections alone\footnote{\url{https://www.mit.edu/~fadel/papers/vitalradio-paper.pdf}}. 
+
+Wall material changes the propagation speed, so range needs a per-wall calibration adjustment, a known problem in the through-wall radar literature with published estimation techniques we can borrow from\footnote{\url{https://doi.org/10.1109/TAP.2011.2164206}}. Multiple walls and exterior brick are out of scope. 
+
+Full imaging, an actual silhouette or skeleton, is not achievable for our purposes. MIT's RF-Pose needed a trained neural network and camera-synchronized source to get there\footnote{\url{https://rfpose.csail.mit.edu/}}, and that's years of work. 
+
 \subsection*{Evaluation and Testing}
 
-Minimum bar for success: detect and range a single person walking behind one interior drywall wall, range error under about 50 cm. Next target: add angle of arrival, so the device tracks that person's position within the forward sector and the blip moves on screen in real time as they walk.
+Our minimum bar for success is to detect a single person walking behind one interior drywall, range error under about 50 cm, and tracks the person's motion somewhat accurately. AKA, the blip on the screen should track the person as they walk around in real time.
 
-A person walks a marked path in the far room while a camera in that room, timestamp-synced to the radar, records ground truth. We compare the estimated track against the actual one and pull out detection range, range accuracy, angular accuracy, update rate, and how many people we can resolve at once.
-
-Some caveats we won't hide from the report. The device only sees moving people, since the static subtraction erases anyone holding perfectly still (a breathing-detection mode is a stretch goal that would recover some of them). Wall material changes the propagation speed, so range needs a per-wall calibration adjustment. Multiple walls and exterior brick are out of scope. Full imaging, an actual silhouette or skeleton, is explicitly not what this is, that's years of work and a trained neural network. We track blips.
+For more rigorous testing, we can have a person walks a marked path in the far room while a camera in that room records. We compare the estimated track against the actual one and extract detection range, range accuracy, angular accuracy, refresh rate, and how many people we can resolve at once.
 
 \newpage
 
