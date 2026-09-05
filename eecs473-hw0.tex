@@ -39,15 +39,15 @@ Some definitions for you the reader and also as notes for myself as I research:
 \small
 \begin{tabular}{|c|p{13.5cm}|}
 \hline
-9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and processor. Decide on whether an FPGA is necessary, and if so, design around that instead. Finalize proposal. \\
+9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and a Raspberry Pi 5 as the processor board. Finalize proposal. \\
 \hline
 10/1--10/22 & Basic prototyping, have an RF emitter and antenna. Increase the number of antennae and try to get a proof of concept working.  \\
 \hline
 10/15--11/5 & PCB design and first order. This obviously requires knowing the antenna layout, what needs to go where physically, the number of ports we need, etc. Ideally order by 10/26. \\
 \hline
-10/22--11/19 & Full DSP pipeline on the laptop. FMCW range processing, moving-target recognition and indication. Validate it through a real wall. \\
+10/22--11/19 & Full DSP pipeline on the laptop. FMCW range processing, moving-target recognition and indication. Verify that it works by testing with some sort of thin wall. \\
 \hline
-11/12--12/3 & Integration everything and rigirous refining and testing. \\
+11/12--12/3 & Integrate everything and rigorous refining and testing. \\
 \hline
 12/3--12/10 & Final testing, calibration, poster and expo prep. Have numbers for what we can advertise for the device. \\
 \hline
@@ -58,29 +58,29 @@ Some definitions for you the reader and also as notes for myself as I research:
 
 \begin{center}
 \small
-\begin{tabular}{p{6.5cm} p{5.5cm} c}
+\begin{tabular}{p{5cm} p{8cm} c}
 \hline
 Category & Examples & Est. \$ \\
 \hline
-RF semiconductors & VCO, PLL, LNAs, mixers, gain blocks & 250 \\
+RF front end & VCO, PLL, LNAs, mixers, connectors, cable, filters & 400 \\
 ADC and digital capture & dual 12-bit 40--65 MSPS parts & 100 \\
-Processor / FPGA board & Zynq-7020 class\footnotemark & 150 \\
-RF connectors, cable, passives & SMA launches, RG405, filters, baluns & 150 \\
+Processor board & Raspberry Pi 5, 8GB & 90 \\
 PCB fabrication & FR-4 iteration plus final Rogers hybrid & 300 \\
 Display, battery, enclosure & 5 in LCD, LiPo, 3D-printed housing & 90 \\
 Shipping & several part and board orders & 75 \\
 \hline
-\textbf{Total} & & \textbf{1115} \\
+\textbf{Total} & & \textbf{1055} \\
 \hline
 \end{tabular}
 \end{center}
-\footnotetext{A department-owned FPGA board could substitute for this line, dropping the total to about \$965 and leaving more headroom under the \$1250 ceiling.}
 
 \subsubsection*{Implementation Issues}
 
+We picked the Raspberry Pi 5 over an FPGA for the processor board. Its quad-core ARM Cortex-A76 at 2.4 GHz has enough headroom to run the FFT and moving-target indication math in software for our channel count, without the schedule risk of writing custom FPGA logic under semester time pressure. If we scale up to more RX channels and need more throughput than the Pi can give us, a Jetson Orin Nano is the next step up: its GPU can batch FFTs across channels in parallel via cuFFT, and the team already has hands-on familiarity with it from other project work.
+
 RF is unforgiving. The antenna and front end are the critical path for the whole project, so we're budgeting for at least two board revisions on their account, and we need bench access to a vector network analyzer and a spectrum analyzer for bring-up (the department lab has both). Transmit power stays inside the FCC Part 15 UWB emission mask, so no license is required, and building a high-power radar in a licensed band is not on the table. No moving parts, no mechanical hazards, and the RF power draw is tiny compared to what the display and processor pull.
 
-FMCW radar in this band is otherwise well-trodden ground. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and parts like the ADF4159 PLL paired with the HMC series are available at reasonable cost. MIT's WiTrack project already pulled off through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we're re-implementing a known result on a budget, not inventing a new one. The antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time are the hard parts for us, but none of them is an open research question.
+FMCW radar in this band is otherwise well-trodden ground. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and parts like the ADF4159 PLL paired with the HMC series are available at reasonable cost. MIT's WiTrack project already pulled off through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we're re-implementing a known result on a budget, not inventing a new one. Their follow-up, WiTrack2.0, has useful collected data and antenna array layouts to reference as we design our own\footnote{\url{https://witrack.csail.mit.edu/witrack2-paper.pdf}}. The antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time are the hard parts for us, but none of them is an open research question.
 
 The device only sees moving people, since the static subtraction erases anyone holding perfectly still. A breathing-detection mode is a stretch goal that would recover some of them
 
