@@ -23,7 +23,7 @@ The device works by sending out a radio signal and listening for the echo, the s
 
 \subsection*{Implementation}
 
-Some definitions for you the reader and also as notes for myself as I research:
+Some definitions for the reader:
 
 \textbf{PLL}: phase-locked loop, the controller chip that commands and stabilizes the signal sweep.
 
@@ -75,11 +75,13 @@ Display, battery, enclosure & 5 in LCD, LiPo, 3D-printed housing & 150 \\
 
 \subsubsection*{Implementation Issues}
 
-For the processor board I'm leaning toward a SBC like a Raspberry Pi 5, with a cheap Jetson as a stretch, rather than an FPGA. The biggest computational load we have to worry about is whether the processer is fast enough to run several FFTs in parallel. If we end up scaling to more RX channels and need more throughput, a Jetson Orin Nano is the likely the next choice. However, if someone on the team happens to want to do FPGA work, that could be a stretch goal too. 
+For the processor board I'm leaning toward a SBC like a Raspberry Pi 5, with a cheap Jetson as a stretch, rather than an FPGA. The biggest computational load we have to worry about is whether the processer is fast enough to run several FFTs in parallel. If we end up scaling to more RX channels and need more throughput, a Jetson Orin Nano is likely the next choice. However, if someone on the team happens to want to do FPGA work, that could be a stretch goal too. 
 
-Since RF design is unforgiving, and I suspect no one on the team that will work on this project has any RF expereince, the mechanical design of the arrange of transmitters and receivers as well as the algorithms used to parse it into something readable will be by far the most difficult part of the implementation. A lot of time and effort, and possibly money, will have to go into making this work. The team should also work as quick as possible to have a proof of concept working. If the team is unable to do so, they will need to consider pivoting to an alternate project.
+Since RF design is unforgiving, and I suspect no one on the team that will work on this project has any RF experience, the mechanical design of the arrangement of transmitters and receivers as well as the algorithms used to parse it into something readable will be by far the most difficult part of the implementation. A lot of time and effort, and possibly money, will have to go into making this work. The team should also work as quick as possible to have a proof of concept working. If the team is unable to do so, they will need to consider pivoting to an alternate project.
 
-The basic FMCW radar seems to have been implement frequently in academia. For example, MIT's 6.S062 coffee-can radar and Henrik Forsten's 6 GHz FMCW radar are both fully documented open builds we can use as reference designs, and the RF parts they use, the ADF4159 PLL and similar, are cheap and easy to get. Doing it through a wall specifically has been demonstrated too. MIT's WiTrack localized a single moving person through a wall in about the frequency range we're targeting\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, and the WiTrack2.0 paper includes collected datasets and antenna array layouts we can use as references when we lay out ours\footnote{\url{https://witrack.csail.mit.edu/witrack2-paper.pdf}}. 
+On the other obvious implementation questions: no. The device transmits at very low power inside the FCC Part 15 UWB mask, so there is no licensing issue and no real RF safety concern. There are no moving parts or mechanical hazards. It is a battery-powered handheld, and the display and processor dominate the power draw, so there is no energy budget problem. The only facilities we need are a vector network analyzer and a spectrum analyzer for bring-up, both of which the department lab already has.
+
+The basic FMCW radar seems to have been implemented frequently in academia. For example, MIT's 6.S062 coffee-can radar and Henrik Forsten's 6 GHz FMCW radar are both fully documented open builds we can use as reference designs, and the RF parts they use, the ADF4159 PLL and similar, are cheap and easy to get. Doing it through a wall specifically has been demonstrated too. MIT's WiTrack localized a single moving person through a wall in about the frequency range we're targeting\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, and the WiTrack2.0 paper includes collected datasets and antenna array layouts we can use as references when we lay out ours\footnote{\url{https://witrack.csail.mit.edu/witrack2-paper.pdf}}. 
 
 The device only sees moving people, since the subtraction effectively erases anyone holding perfectly still. A breathing-detection mode is a stretch goal. MIT's Vital-Radio project has shown breathing and heart rate can be picked out through a wall from radio reflections alone\footnote{\url{https://www.mit.edu/~fadel/papers/vitalradio-paper.pdf}}, so with enough time, the team could try to implement this.
 
@@ -95,15 +97,15 @@ For more rigorous testing, we can have a person walks a marked path in the far r
 
 \newpage
 
-\section*{Proposal 2 (Unrealistic): Head-Mounted Aurora Viewer}
+\section*{Proposal 2 (Wacky): Head-Mounted Aurora Viewer}
 
 \subsection*{High-Level Description}
 
-A visor that lets you see auroae the naked eye cannot. The human eye integrates light over roughly a tenth of a second, so a faint aurora appears as a dim grey smudge with no color. A camera can integrate for five seconds and pull out bright, structured green and purple curtains. This device performs that integration live and puts the result on a display in front of your eyes.
+A visor that lets you see aurorae the naked eye cannot. The human eye integrates light over roughly a tenth of a second, so a faint aurora appears as a dim grey smudge with no color. A camera can integrate for five seconds and pull out bright, structured green and purple curtains. This device performs that integration live and puts the result on a display in front of your eyes.
 
-This idea originated when I first went aurora viewing here in Michigan, and was confused when everyone else began pulling out thier phones and cameras to take pictures while I could not see anything in the sky. I was able to capture the faint aurora with a long exposure shot on my phone, but I thought being able to view the faint and otherwise invisible aurora in real time would be very cool. 
+This idea originated when I first went aurora viewing here in Michigan, and was confused when everyone else began pulling out their phones and cameras to take pictures while I could not see anything in the sky. I was able to capture the faint aurora with a long exposure shot on my phone, but I thought being able to view the faint and otherwise invisible aurora in real time would be very cool.
 
-The finished device is a visor or a pair of glasses. A low-light camera like the type used in dash cams (some fancy Sony sensor that works well with motion and low light) at the top, two micro-OLED displays, an IMU on the frame, and a compute pack on the headband or belt worn around the waist. It captures frames continuously, uses the IMU together with the camera stream to register each new frame against the running stack so that head motion cancels out, and integrates about five seconds of exposure. The stacked, denoised, color-boosted image is sent to the displays at a the highest framerate we can get, which will probably be in the 1 to low 2 digits. The compute pack (probably something along the lines of a Jetson Orin) may be quite heavy, hence why we suggest it could be waist mounted. 
+The finished device is a visor or a pair of glasses. A low-light camera like the type used in dash cams (some fancy Sony sensor that works well with motion and low light) at the top, two micro-OLED displays, an IMU on the frame, and a compute pack on the headband or belt worn around the waist. It captures frames continuously, uses the IMU together with the camera stream to register each new frame against the running stack so that head motion cancels out, and integrates about five seconds of exposure. The stacked, denoised, color-boosted image is sent to the displays at the highest framerate we can get, which will probably be in the 1 to low 2 digits. The compute pack (probably something along the lines of a Jetson Orin) may be quite heavy, hence why we suggest it could be waist mounted. 
 
 \subsection*{Implementation}
 
