@@ -39,15 +39,15 @@ Some definitions for you the reader and also as notes for myself as I research:
 \small
 \begin{tabular}{|c|p{13.5cm}|}
 \hline
-9/10--10/1 & Planning and part selection. Choose the PLL/VCO, mixer, LNA, ADC, and a Raspberry Pi 5 as the processor board. Finalize proposal. \\
+9/10--10/1 & Planning and part selection. Narrow down the RF components and the processor board (likely a Raspberry Pi 5 or similar single-board computer). Finalize proposal. \\
 \hline
-10/1--10/22 & Basic prototyping, have an RF emitter and antenna. Increase the number of antennae and try to get a proof of concept working.  \\
+10/1--10/22 & Basic prototyping, have an RF emitter and antenna. Increase the number of antennas and try to get a proof of concept working.  \\
 \hline
 10/15--11/5 & PCB design and first order. This obviously requires knowing the antenna layout, what needs to go where physically, the number of ports we need, etc. Ideally order by 10/26. \\
 \hline
-10/22--11/19 & Full DSP pipeline on the laptop. FMCW range processing, moving-target recognition and indication. Verify that it works by testing with some sort of thin wall. \\
+10/22--11/19 & Full DSP pipeline on the laptop. Have working FMCW range processing, moving-target recognition and indication. Verify that it works by testing with some sort of thin wall. \\
 \hline
-11/12--12/3 & Integrate everything and rigorous refining and testing. \\
+11/12--12/3 & Integrate everything and do rigorous refining and testing. \\
 \hline
 12/3--12/10 & Final testing, calibration, poster and expo prep. Have numbers for what we can advertise for the device. \\
 \hline
@@ -62,33 +62,30 @@ Some definitions for you the reader and also as notes for myself as I research:
 \hline
 Category & Examples & Est. \$ \\
 \hline
-RF front end & VCO, PLL, LNAs, mixers, connectors, cable, filters & 400 \\
-ADC and digital capture & dual 12-bit 40--65 MSPS parts & 100 \\
-Processor board & Raspberry Pi 5, 8GB & 90 \\
-PCB fabrication & FR-4 iteration plus final Rogers hybrid & 300 \\
-Display, battery, enclosure & 5 in LCD, LiPo, 3D-printed housing & 90 \\
-Shipping & several part and board orders & 75 \\
+RF front end & antennas, electrical components & 500 \\
+ADC and digital capture & & 150 \\
+Processor board & Raspberry Pi 5 or similar & 180 \\
+PCB fabrication & & 300 \\
+Display, battery, enclosure & 5 in LCD, LiPo, 3D-printed housing & 150 \\
 \hline
-\textbf{Total} & & \textbf{1055} \\
+\textbf{Total} & & \textbf{1280} \\
 \hline
 \end{tabular}
 \end{center}
 
 \subsubsection*{Implementation Issues}
 
-We picked the Raspberry Pi 5 over an FPGA for the processor board. Its quad-core ARM Cortex-A76 at 2.4 GHz has enough headroom to run the FFT and moving-target indication math in software for our channel count, without the schedule risk of writing custom FPGA logic under semester time pressure. If we scale up to more RX channels and need more throughput than the Pi can give us, a Jetson Orin Nano is the next step up: its GPU can batch FFTs across channels in parallel via cuFFT, and the team already has hands-on familiarity with it from other project work.
+For the processor board we're leaning toward a SBC like a Raspberry Pi 5, with a cheap Jetson as a stretch, rather than an FPGA. The biggest computational load we have to worry about is whether the processer is fast enough to run several FFTs in parallel. If we end up scaling to more RX channels and need more throughput, a Jetson Orin Nano is the likely the next choice. However, if someone on the team happens to want to do FPGA work, that could be a stretch goal too. 
 
-RF is unforgiving. The antenna and front end are the critical path for the whole project, so we're budgeting for at least two board revisions on their account, and we need bench access to a vector network analyzer and a spectrum analyzer for bring-up (the department lab has both). Transmit power stays inside the FCC Part 15 UWB emission mask, so no license is required, and building a high-power radar in a licensed band is not on the table. No moving parts, no mechanical hazards, and the RF power draw is tiny compared to what the display and processor pull.
+Since RF design is unforgiving, and I suspect no one on the team that will work on this project has any RF expereince, the mechanical design of the arrange of transmitters and receivers as well as the algorithms used to parse it into something readable will be by far the most difficult part of the implementation. A lot of time and effort, and possibly money, will have to go into making this work. The team should also work as quick as possible to have a proof of concept working. If the team is unable to do so, they will need to consider pivoting to an alternate project.
 
 FMCW radar in this band is otherwise well-trodden ground. MIT's 6.S062 ``coffee-can radar'' and Henrik Forsten's open 6 GHz FMCW radar project are both public end-to-end designs, and parts like the ADF4159 PLL paired with the HMC series are available at reasonable cost. MIT's WiTrack project already pulled off through-wall localization of a single moving person in roughly this band with about 1.8 GHz of bandwidth\footnote{\url{https://witrack.csail.mit.edu/}}\footnote{\url{https://witrack.csail.mit.edu/witrack-paper.pdf}}, so we're re-implementing a known result on a budget, not inventing a new one. Their follow-up, WiTrack2.0, has useful collected data and antenna array layouts to reference as we design our own\footnote{\url{https://witrack.csail.mit.edu/witrack2-paper.pdf}}. The antenna array, the moving-target indication through a real wall, and getting the pipeline to run in real time are the hard parts for us, but none of them is an open research question.
 
-The device only sees moving people, since the static subtraction erases anyone holding perfectly still. A breathing-detection mode is a stretch goal that would recover some of them
+The device only sees moving people, since the static subtraction erases anyone holding perfectly still. A breathing-detection mode is a stretch goal that would recover some of them: a still person's chest still moves as they breathe, and MIT's Vital-Radio project has shown breathing and heart rate can be picked out through a wall from radio reflections alone\footnote{\url{https://www.mit.edu/~fadel/papers/vitalradio-paper.pdf}}, so it is a demonstrated result rather than something we would be inventing.
 
-MIT's Vital-Radio project has shown breathing and heart rate can be picked out through a wall from radio reflections alone\footnote{\url{https://www.mit.edu/~fadel/papers/vitalradio-paper.pdf}}. 
+Wall material changes how fast the signal travels through it, which means different types of walls are going to yield different distances. For the thin interior walls we're initially targeting (drywall, plywood), that bias is on the order of a couple of centimeters, which is to say fine and negligible. Thicker solid walls like brick add tens of centimeters, which is part of why they're not explicitly in scope. For a bonus demo, we could demo the device through like the outer wall of EECS, but we're likely just going to run with the decreased accuracy. 
 
-Wall material changes the propagation speed, so range needs a per-wall calibration adjustment, a known problem in the through-wall radar literature with published estimation techniques we can borrow from\footnote{\url{https://doi.org/10.1109/TAP.2011.2164206}}. Multiple walls and exterior brick are out of scope. 
-
-Full imaging, an actual silhouette or skeleton, is not achievable for our purposes. MIT's RF-Pose needed a trained neural network and camera-synchronized source to get there\footnote{\url{https://rfpose.csail.mit.edu/}}, and that's years of work. 
+Full imaging, AKA getting an actual silhouette or skeleton, is not achievable for this project. MIT's RF-Pose needed a trained neural network and camera-synchronized source to get there\footnote{\url{https://rfpose.csail.mit.edu/}}, and that's years of work. 
 
 \subsection*{Evaluation and Testing}
 
