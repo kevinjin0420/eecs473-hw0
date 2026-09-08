@@ -1,0 +1,56 @@
+name: Build and Publish PDF
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: eecs473-hw0.tex
+
+      - name: Assemble Pages site
+        run: |
+          mkdir -p site
+          cp eecs473-hw0.pdf site/eecs473-hw0.pdf
+          cat > site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=eecs473-hw0.pdf">
+          <title>EECS 473 HW0</title>
+          </head>
+          <body><a href="eecs473-hw0.pdf">eecs473-hw0.pdf</a></body>
+          </html>
+          EOF
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
